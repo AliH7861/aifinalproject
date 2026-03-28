@@ -1,91 +1,147 @@
 # Spam Email Classifier
 
-This project is a simple web app that checks whether an email message looks like **spam** or **not spam**.
+This project is a beginner-friendly Streamlit app that checks whether an email message looks like **spam** or **not spam**.
 
-It was built with:
+The current version is built around a **manual Multinomial Naive Bayes implementation** written in Python. That means the classification logic is visible in the project code instead of being hidden entirely inside a machine learning library model.
 
-- **Python** for the programming logic
-- **Streamlit** for the web interface
-- **scikit-learn** for the machine learning model
-- A saved **vectorizer** and **model** so the app can make predictions instantly
+## What This Project Does
 
-The app is designed to be easy to run locally on your computer. You paste in an email, click a button, and the app gives you:
+The app lets a user:
 
-- A result such as `Likely Spam` or `Looks Clean`
-- A confidence score shown as a percentage
-- A cleaner visual breakdown showing how strongly the model leans toward each result
+1. Paste an email into a text box
+2. Click `Analyze Email`
+3. See whether the message is likely spam or likely safe
+4. View a confidence breakdown for both `Spam` and `Not Spam`
 
-## What Is In This Project
+## Project Files
 
 - `app.py`  
-  The main Streamlit app. This is what creates the page, loads the saved files, accepts email text, and shows the result.
+  The Streamlit web app that loads the training data, trains the manual classifier, and shows the interface.
 
-- `model.pkl`  
-  The trained machine learning model. This is the part that decides whether the text looks like spam or not.
+- `manual_naive_bayes.py`  
+  The core AI implementation. This file contains the manual Naive Bayes algorithm, including tokenization, training, prediction, and probability calculation.
 
-- `vectorizer.pkl`  
-  The text converter. It turns normal email text into numbers the model can understand.
+- `data/spam_dataset.csv`  
+  The bundled training dataset used by the app. It contains example emails labeled as `spam` or `not spam`.
 
 - `requirements.txt`  
-  The list of Python libraries needed to run the app.
+  The Python package list needed to run the app.
 
-## How The Project Works In Simple Terms
+- `model.pkl` and `vectorizer.pkl`  
+  Older saved files from an earlier library-based version of the project. The current app does not depend on them.
 
-Think of the app like this:
+## How The AI Works In Simple Terms
 
-1. You paste an email into the box.
-2. The app breaks that text into a machine-readable format.
-3. The trained model compares the text to patterns it learned earlier.
-4. The app shows whether it thinks the message is spam or not spam.
-5. It also shows how confident it is about that decision.
+The app learns from example emails. During startup, it reads the dataset and separates the training messages into two groups:
 
-In plain English:
+- spam emails
+- not spam emails
 
-- The **vectorizer** is like a translator. It changes words into numbers.
-- The **model** is like a decision-maker. It looks at those numbers and guesses the category.
-- **Streamlit** is what turns everything into a simple page with a text box and button.
+It then counts how often each word appears in each group. When a new email is entered, the app:
+
+1. Breaks the text into words
+2. Looks at which words are common in spam emails
+3. Looks at which words are common in non-spam emails
+4. Calculates a score for both classes
+5. Chooses the class with the higher score
+
+In simple English:
+
+- If a message contains words that often appear in spam, the spam score goes up.
+- If a message contains words that often appear in normal messages, the not-spam score goes up.
+- The higher score becomes the prediction.
+
+## Manual Naive Bayes Logic
+
+This project uses a manual version of **Multinomial Naive Bayes**.
+
+The algorithm follows these steps:
+
+### 1. Tokenization
+
+The email is converted into lowercase words using a simple tokenizer.
+
+Example:
+
+`Claim your free prize now`
+
+becomes words like:
+
+- `claim`
+- `your`
+- `free`
+- `prize`
+- `now`
+
+### 2. Training
+
+During training, the model counts:
+
+- how many spam emails exist
+- how many non-spam emails exist
+- how many times each word appears in spam emails
+- how many times each word appears in non-spam emails
+
+### 3. Prior Probabilities
+
+The model calculates:
+
+- `P(spam)` = spam emails / total emails
+- `P(not spam)` = non-spam emails / total emails
+
+These are the starting probabilities before looking at the words.
+
+### 4. Word Likelihoods
+
+For each word, the model calculates:
+
+- `P(word | spam)`
+- `P(word | not spam)`
+
+Laplace smoothing is used so that unseen words do not produce zero probability.
+
+### 5. Log Scores
+
+To avoid multiplying many tiny probabilities, the app uses log scores:
+
+- `spam_score = log(P(spam)) + sum(log(P(word | spam)))`
+- `ham_score = log(P(not spam)) + sum(log(P(word | not spam)))`
+
+### 6. Final Prediction
+
+If `spam_score` is larger, the app predicts spam. Otherwise, it predicts not spam.
 
 ## How It Was Built
 
-This project appears to have been built in three main parts:
+This version of the project was built in three simple parts:
 
-### 1. A spam detection model was trained earlier
+### 1. A labeled dataset was added
 
-Someone first trained a machine learning model outside this app using email or message examples labeled as:
+A CSV file named `data/spam_dataset.csv` was created with example emails labeled as:
 
 - `spam`
 - `not spam`
 
-That trained model was then saved into:
+### 2. A manual Naive Bayes classifier was implemented
 
-- `model.pkl`
+The file `manual_naive_bayes.py` includes:
 
-### 2. A text vectorizer was saved
+- a tokenizer
+- word-frequency counting
+- prior probability calculation
+- likelihood calculation
+- log-probability scoring
+- prediction and probability output
 
-Machine learning models do not understand raw sentences directly. Because of that, a text vectorizer was also created and saved into:
+### 3. A Streamlit interface was connected to the manual model
 
-- `vectorizer.pkl`
+The `app.py` file:
 
-Its job is to take a piece of text like:
-
-`Congratulations, you won a free prize`
-
-and convert it into a pattern of numbers the model can use.
-
-### 3. A Streamlit app was added
-
-The `app.py` file loads both saved files and creates a small website where the user can:
-
-- Paste email text
-- Click `Analyze Email`
-- See the prediction and confidence scores
-
-The current version of the app also includes:
-
-- A cleaner centered layout
-- Custom styling for the text box and button
-- A more polished result card
-- Percentage bars for spam vs not spam confidence
+- loads the dataset
+- trains the manual model on startup
+- accepts email text from the user
+- runs prediction using the manual classifier
+- shows the result in a simple UI
 
 ## Step-By-Step Setup
 
@@ -107,15 +163,11 @@ This project already contains a `venv` folder, but on some computers it may not 
 
 ## 1. Open PowerShell In The Project Folder
 
-Open PowerShell and move into the project folder:
-
 ```powershell
 cd C:\Users\alihu\Projects\aifinalporject
 ```
 
 ## 2. Create A Fresh Virtual Environment
-
-This creates a clean Python environment just for this project:
 
 ```powershell
 py -m venv .venv
@@ -129,13 +181,11 @@ python -m venv .venv
 
 ## 3. Activate The Virtual Environment
 
-In PowerShell:
-
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks the script, run this once in the same PowerShell window:
+If PowerShell blocks the script, run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -147,40 +197,29 @@ Then activate again:
 .\.venv\Scripts\Activate.ps1
 ```
 
-After activation, you should usually see something like `(.venv)` at the start of the terminal line.
-
-## 4. Install The Required Packages
-
-Run:
+## 4. Install The Required Package
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-This installs:
+This app currently needs:
 
 - Streamlit
-- scikit-learn
-- pandas
-- numpy
 
 ## 5. Start The App
-
-Run:
 
 ```powershell
 streamlit run app.py
 ```
 
-Streamlit should open a browser tab automatically. If it does not, PowerShell will show a local URL, usually something like:
+Streamlit should open a browser tab automatically. If it does not, open the local address shown in the terminal, usually:
 
 `http://localhost:8501`
 
-Open that in your browser.
-
 ## 6. Stop The App
 
-When you are done, go back to the terminal and press:
+Press:
 
 ```text
 Ctrl + C
@@ -188,50 +227,21 @@ Ctrl + C
 
 ## Simple Usage Guide For A Non-Technical Person
 
-If you have never used a coding project before, this is the easiest way to think about it:
-
 1. Start the app.
-2. A page opens in your browser.
+2. Wait for the page to open in your browser.
 3. Copy the email message you want to check.
-4. Paste it into the big text box.
-5. Click the `Analyze Email` button.
-6. Read the result shown on the screen.
+4. Paste it into the text box.
+5. Click `Analyze Email`.
+6. Read the result.
 
-You will see one of these:
+You will see either:
 
 - `Likely Spam`
 - `Looks Clean`
 
-You will also see numbers that show confidence. A higher number means the model feels more sure about its answer.
-
-Example:
-
-- `Likely Spam` with `92% confidence` means the app is very confident the message looks suspicious.
-- `Looks Clean` with `88% confidence` means the app is quite confident the message looks safe.
-
-## Full Step-By-Step Example
-
-Here is a simple example of how someone would use the project from start to finish:
-
-1. Open PowerShell.
-2. Go to the project folder.
-3. Activate the virtual environment.
-4. Run `streamlit run app.py`.
-5. Wait for the browser page to open.
-6. Paste an email such as:
-
-```text
-Congratulations! You have won a free gift card. Click here now to claim your reward.
-```
-
-7. Click `Analyze Email`.
-8. Read the result.
-9. Try another email if you want.
-10. Press `Ctrl + C` in PowerShell when finished.
+You will also see confidence percentages for both spam and non-spam.
 
 ## Example Emails To Try
-
-You can copy and paste these into the app to see how it behaves.
 
 ### Example 1: Likely Spam
 
@@ -239,23 +249,11 @@ You can copy and paste these into the app to see how it behaves.
 Congratulations! You have won a free gift card. Click here now to claim your reward. This offer expires today.
 ```
 
-Why it may be flagged:
-
-- It uses urgent wording
-- It promises a reward
-- It asks the user to click quickly
-
 ### Example 2: Likely Not Spam
 
 ```text
 Hi Sarah, just checking if we are still meeting tomorrow at 2 PM in the office. Please let me know if you want to move it to 3 PM instead.
 ```
-
-Why it may be seen as normal:
-
-- It sounds like a regular work message
-- It does not ask for money or personal details
-- It does not use suspicious reward language
 
 ### Example 3: Another Likely Spam Example
 
@@ -271,107 +269,46 @@ Hello team, the weekly report is attached. Please review it before Friday and sh
 
 Note:
 
-These are good test messages for the app, but the exact result and confidence percentage can vary depending on how the model was trained.
+These are useful test messages, but the exact confidence can vary depending on the dataset and word patterns used by the classifier.
 
 ## What The User Sees In The App
 
-The app now has a simple but cleaner layout:
+The app has:
 
-- A title: `Spam Checker`
-- A short instruction telling the user to paste an email below
-- A large text box
-- A button called `Analyze Email`
-- A result card showing either `Likely Spam` or `Looks Clean`
-- A confidence breakdown with percentage bars for `Spam` and `Not Spam`
-
-This makes it easy for someone to use the project without understanding the code.
+- a title called `Spam Checker`
+- a short instruction message
+- a large text box
+- an `Analyze Email` button
+- a result card
+- confidence bars for spam and not spam
 
 ## What Happens Behind The Scenes
 
-When the user presses the button, this is what happens:
+When the user clicks the button:
 
-1. The app checks whether the text box is empty.
-2. If it is empty, it shows a warning asking the user to enter text.
-3. If text is present, the app sends the email text to the vectorizer.
-4. The vectorizer converts the text into a numerical format.
-5. The model predicts the class.
-6. The model also calculates class probabilities.
-7. The app displays:
-   - the final label
-   - the confidence percentage
-   - the spam and not spam confidence bars
+1. The app checks that text was entered.
+2. The app sends the text to the manual Naive Bayes classifier.
+3. The classifier tokenizes the words.
+4. The classifier computes spam and not-spam scores using its learned word frequencies.
+5. The app shows the final label and confidence percentages.
 
-## Who This Project Is For
+## Why This Version Better Matches The Assignment
 
-This project is good for:
+This version is more suitable for an AI assignment because the core algorithm is now visible in code. Instead of only loading a saved library model, the project now shows:
 
-- Students learning about machine learning
-- Beginners learning Streamlit
-- Small demos or classroom presentations
-- People who want a simple example of text classification
+- how the data is read
+- how the model is trained
+- how probabilities are calculated
+- how the final prediction is made
 
 ## Limitations
 
-This project is useful as a demo, but it is important to understand its limits:
-
-- It only knows what it learned from the data it was trained on
-- It may be wrong on unusual or tricky emails
-- It should not be used as the only security tool for real-world email protection
-- The training script and training dataset are not included in this folder
-
-## Troubleshooting
-
-### Problem: `streamlit` is not recognized
-
-Try:
-
-```powershell
-python -m streamlit run app.py
-```
-
-or:
-
-```powershell
-py -m streamlit run app.py
-```
-
-Make sure the virtual environment is activated first.
-
-### Problem: package install fails
-
-Make sure Python is installed correctly:
-
-```powershell
-py --version
-```
-
-If that does not work, try:
-
-```powershell
-python --version
-```
-
-### Problem: the included `venv` does not work
-
-Delete or ignore the old `venv` folder and create a new one:
-
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-### Problem: nothing happens when clicking the button
-
-Make sure:
-
-- you pasted email text into the box
-- the app is still running in the terminal
-- the browser page has not disconnected from Streamlit
+- The bundled dataset is small, so predictions are mainly for demonstration and learning.
+- The classifier only looks at email text.
+- It does not inspect links, attachments, sender reputation, or metadata.
+- Real-world spam filtering systems are much more advanced than this classroom example.
 
 ## Quick Start
-
-If you just want the shortest version:
 
 ```powershell
 cd C:\Users\alihu\Projects\aifinalporject
@@ -383,18 +320,4 @@ streamlit run app.py
 
 ## Summary
 
-This is a beginner-friendly spam email classification app built with Streamlit and a pre-trained machine learning model.
-
-The basic flow is:
-
-1. User pastes email text
-2. Text is converted into numbers
-3. Model predicts spam or not spam
-4. App shows the result and confidence
-
-If you want to improve the project later, the next natural upgrades would be:
-
-- add the model training notebook or script
-- include example test emails
-- show cleaner confidence percentages
-- deploy the app online
+This project is a simple spam email classifier with a manual Naive Bayes implementation and a Streamlit interface. The user pastes an email, the app compares its words to the training examples, and the system predicts whether the message is spam or not spam.

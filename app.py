@@ -1,22 +1,31 @@
-import streamlit as st
-import pickle
+from pathlib import Path
 
-# Page config
+import streamlit as st
+
+from manual_naive_bayes import ManualNaiveBayes, load_training_data
+
+
 st.set_page_config(page_title="Spam Checker", page_icon="mail", layout="centered")
 
-# Load model + vectorizer
-with open("model.pkl", "rb") as f:
-    model = pickle.load(f)
-with open("vectorizer.pkl", "rb") as f:
-    vectorizer = pickle.load(f)
 
-# Global CSS 
-st.markdown("""
+@st.cache_resource
+def load_model():
+    dataset_path = Path(__file__).parent / "data" / "spam_dataset.csv"
+    texts, labels = load_training_data(dataset_path)
+
+    model = ManualNaiveBayes()
+    model.fit(texts, labels)
+    return model
+
+
+model = load_model()
+
+st.markdown(
+    """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-
     #MainMenu, footer, header { visibility: hidden; }
 
     .block-container {
@@ -58,7 +67,6 @@ st.markdown("""
         box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
     }
 
-    /* Hide the auto-generated label from st.text_area */
     [data-testid="stTextArea"] label { display: none; }
 
     div.stButton > button {
@@ -85,17 +93,11 @@ st.markdown("""
         margin: 1.4rem 0 0.5rem;
         font-size: 1rem;
         font-weight: 600;
-    }
-    .result-pill.spam {
         background: #fff;
         border: 1.5px solid #e5e7eb;
         color: #111;
     }
-    .result-pill.ham {
-        background: #fff;
-        border: 1.5px solid #e5e7eb;
-        color: #111;
-    }
+
     .result-pill .badge {
         margin-left: auto;
         font-size: 0.78rem;
@@ -104,9 +106,9 @@ st.markdown("""
         text-transform: uppercase;
         padding: 0.2rem 0.55rem;
         border-radius: 6px;
+        background: #111;
+        color: #fff;
     }
-    .result-pill.spam .badge { background: #111; color: #fff; }
-    .result-pill.ham  .badge { background: #111; color: #fff; }
 
     .divider { height: 1px; background: #f3f4f6; margin: 1.4rem 0; }
 
@@ -138,72 +140,81 @@ st.markdown("""
     .bar-fill.spam-bar { background: #6b7280; }
     .bar-fill.ham-bar  { background: #d1d5db; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# Header 
-st.markdown("""
+st.markdown(
+    """
 <div class="header-wrap">
     <h1>Spam Checker</h1>
     <p>Paste any email below and we'll tell you if it looks suspicious.</p>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# Input 
 st.markdown('<p class="input-label">Email content</p>', unsafe_allow_html=True)
 email_input = st.text_area(
     label="Email content",
     label_visibility="hidden",
     height=190,
-    placeholder="e.g. Congratulations! You've been selected for a special offer..."
+    placeholder="e.g. Congratulations! You've been selected for a special offer...",
 )
 
 if st.button("Analyze Email"):
     if not email_input.strip():
         st.warning("Paste some email text first.")
     else:
-        vec        = vectorizer.transform([email_input])
-        prediction = model.predict(vec)[0]
-        probs      = model.predict_proba(vec)[0]
-        labels     = list(model.classes_)
+        prediction = model.predict([email_input])[0]
+        probabilities = model.predict_proba([email_input])[0]
+        labels = list(model.classes_)
 
-
-
-        # Safely get probabilities
-        spam_label = [l for l in labels if str(l).lower() in ("spam", "1")][0]
-        ham_label  = [l for l in labels if str(l).lower() in ("ham", "not spam", "0")][0]
-
-        spam_p = probs[labels.index(spam_label)]
-        ham_p  = probs[labels.index(ham_label)]
-        is_spam = str(prediction).lower() in ("spam", "1")
+        spam_p = probabilities[labels.index("spam")]
+        ham_p = probabilities[labels.index("not spam")]
+        is_spam = prediction == "spam"
         confidence = max(spam_p, ham_p)
 
         if is_spam:
-            st.markdown(f"""
-            <div class="result-pill spam">
+            st.markdown(
+                f"""
+            <div class="result-pill">
                 Likely Spam
                 <span class="badge">{confidence:.0%} confidence</span>
-            </div>""", unsafe_allow_html=True)
+            </div>""",
+                unsafe_allow_html=True,
+            )
         else:
-            st.markdown(f"""
-            <div class="result-pill ham">
+            st.markdown(
+                f"""
+            <div class="result-pill">
                 Looks Clean
                 <span class="badge">{confidence:.0%} confidence</span>
-            </div>""", unsafe_allow_html=True)
+            </div>""",
+                unsafe_allow_html=True,
+            )
 
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
         st.markdown('<p class="conf-label">Confidence breakdown</p>', unsafe_allow_html=True)
 
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="bar-row">
             <div class="bar-meta"><span>Spam</span><span>{spam_p:.0%}</span></div>
             <div class="bar-track">
-                <div class="bar-fill spam-bar" style="width:{spam_p*100:.1f}%"></div>
+                <div class="bar-fill spam-bar" style="width:{spam_p * 100:.1f}%"></div>
             </div>
         </div>
         <div class="bar-row">
             <div class="bar-meta"><span>Not Spam</span><span>{ham_p:.0%}</span></div>
             <div class="bar-track">
-                <div class="bar-fill ham-bar" style="width:{ham_p*100:.1f}%"></div>
+                <div class="bar-fill ham-bar" style="width:{ham_p * 100:.1f}%"></div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
+
+st.caption(
+    "This version trains a manual Multinomial Naive Bayes classifier from the bundled dataset each time the app starts."
+)
