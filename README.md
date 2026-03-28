@@ -11,9 +11,9 @@ It was built with:
 
 The app is designed to be easy to run locally on your computer. You paste in an email, click a button, and the app gives you:
 
-- A result: `Spam` or `Not Spam`
-- A confidence score
-- A simple breakdown showing how strongly the model leans toward each result
+- A result such as `Likely Spam` or `Looks Clean`
+- A confidence score shown as a percentage
+- A cleaner visual breakdown showing how strongly the model leans toward each result
 
 ## What Is In This Project
 
@@ -77,8 +77,15 @@ and convert it into a pattern of numbers the model can use.
 The `app.py` file loads both saved files and creates a small website where the user can:
 
 - Paste email text
-- Click `Check Email`
+- Click `Analyze Email`
 - See the prediction and confidence scores
+
+The current version of the app also includes:
+
+- A cleaner centered layout
+- Custom styling for the text box and button
+- A more polished result card
+- Percentage bars for spam vs not spam confidence
 
 ## Step-By-Step Setup
 
@@ -187,20 +194,20 @@ If you have never used a coding project before, this is the easiest way to think
 2. A page opens in your browser.
 3. Copy the email message you want to check.
 4. Paste it into the big text box.
-5. Click the `Check Email` button.
+5. Click the `Analyze Email` button.
 6. Read the result shown on the screen.
 
 You will see one of these:
 
-- `Spam`
-- `Not Spam`
+- `Likely Spam`
+- `Looks Clean`
 
 You will also see numbers that show confidence. A higher number means the model feels more sure about its answer.
 
 Example:
 
-- `Spam (0.92)` means the app is very confident the message looks like spam.
-- `Not Spam (0.88)` means the app is quite confident the message looks safe.
+- `Likely Spam` with `92% confidence` means the app is very confident the message looks suspicious.
+- `Looks Clean` with `88% confidence` means the app is quite confident the message looks safe.
 
 ## Full Step-By-Step Example
 
@@ -217,23 +224,21 @@ Here is a simple example of how someone would use the project from start to fini
 Congratulations! You have won a free gift card. Click here now to claim your reward.
 ```
 
-7. Click `Check Email`.
+7. Click `Analyze Email`.
 8. Read the result.
 9. Try another email if you want.
 10. Press `Ctrl + C` in PowerShell when finished.
 
 ## What The User Sees In The App
 
-The app has a very small and simple layout:
+The app now has a simple but cleaner layout:
 
-- A title: `Spam Email Classifier`
-- A short instruction telling the user to enter an email
+- A title: `Spam Checker`
+- A short instruction telling the user to paste an email below
 - A large text box
-- A button called `Check Email`
-- A result section
-- A confidence breakdown with two boxes:
-  - `Spam`
-  - `Not Spam`
+- A button called `Analyze Email`
+- A result card showing either `Likely Spam` or `Looks Clean`
+- A confidence breakdown with percentage bars for `Spam` and `Not Spam`
 
 This makes it easy for someone to use the project without understanding the code.
 
@@ -249,8 +254,8 @@ When the user presses the button, this is what happens:
 6. The model also calculates class probabilities.
 7. The app displays:
    - the final label
-   - the confidence score
-   - the spam and not spam probability boxes
+   - the confidence percentage
+   - the spam and not spam confidence bars
 
 ## Who This Project Is For
 
