@@ -229,6 +229,50 @@ Congratulations! You have won a free gift card. Click here now to claim your rew
 9. Try another email if you want.
 10. Press `Ctrl + C` in PowerShell when finished.
 
+## Example Emails To Try
+
+You can copy and paste these into the app to see how it behaves.
+
+### Example 1: Likely Spam
+
+```text
+Congratulations! You have won a free gift card. Click here now to claim your reward. This offer expires today.
+```
+
+Why it may be flagged:
+
+- It uses urgent wording
+- It promises a reward
+- It asks the user to click quickly
+
+### Example 2: Likely Not Spam
+
+```text
+Hi Sarah, just checking if we are still meeting tomorrow at 2 PM in the office. Please let me know if you want to move it to 3 PM instead.
+```
+
+Why it may be seen as normal:
+
+- It sounds like a regular work message
+- It does not ask for money or personal details
+- It does not use suspicious reward language
+
+### Example 3: Another Likely Spam Example
+
+```text
+Dear customer, your account has been selected for a special cash bonus. Verify your details immediately to receive your payment.
+```
+
+### Example 4: Another Likely Not Spam Example
+
+```text
+Hello team, the weekly report is attached. Please review it before Friday and share any comments by the end of the day.
+```
+
+Note:
+
+These are good test messages for the app, but the exact result and confidence percentage can vary depending on how the model was trained.
+
 ## What The User Sees In The App
 
 The app now has a simple but cleaner layout:
